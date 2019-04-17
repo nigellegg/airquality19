@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bristol Air Quality Map </title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7/leaflet.css"/>
+    
+    <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.5/themes/ui-lightness/jquery-ui.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>	
+	<script src="http://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+	<script>
+		$(function() {
+			$( "#radio" ).buttonset();
+		});
+	</script>
+</head>
+<body>
+    <div id="map" style="width: 900px; height: 600px">
+		<div id="radio" style="position:relative; z-index:7; padding: 0px 5px; float:right" >
+			<input type="radio" id="radio1" name="radio"><label for="radio1">NO</label>
+			<input type="radio" id="radio2" name="radio" checked="checked"><label for="radio2">NOx</label>
+		</div>
+    
+    </div>
+
+    <script src="http://cdn.leafletjs.com/leaflet-0.7/leaflet.js"> </script>
+    <script src="http://leaflet.github.io/Leaflet.heat/dist/leaflet-heat.js"></script>
+	<script src="all_no.js"></script>
+	<script src="all_nox.js"></script>
+	
+    <script>
+
+        var map = L.map('map').setView([51.4497109,-2.5800031], 15);
+        mapLink = '<a href="http://openstreetmap.org">OpenStreetMap</a>';
+        L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; ' + mapLink + ' Contributors', maxZoom: 18, }).addTo(map);
+		no2_cir =  [];
+		par_cir =  [];
+
+        function addNO2() {
+                        radius = 10
+			
+			for (i = 0; i < no2Points.length; i++) {
+				if (no2Points[i][2] < 0.04) {
+					ccolor = "blue";
+					fopa = 0.2;
+					no2_cir.push(L.circle([no2Points[i][0],no2Points[i][1]], radius,{ color: ccolor, stroke:false, fillColor: ccolor, fillOpacity: fopa}).addTo(map));
+				}
+			}
+
+			for (i = 0; i < no2Points.length; i++) {
+				if (0.06 > no2Points[i][2] && no2Points[i][2] >= 0.04) {
+					ccolor = "green";
+					fopa = 0.2;
+					no2_cir.push(L.circle([no2Points[i][0],no2Points[i][1]], radius,{ color: ccolor, stroke:false, fillColor: ccolor, fillOpacity: fopa}).addTo(map));
+				}
+			}
+
+			for (i = 0; i < no2Points.length; i++) {			
+				if (0.08 > no2Points[i][2] && no2Points[i][2] >= 0.06) {
+					ccolor = "yellow";
+					fopa = 0.2;
+					no2_cir.push(L.circle([no2Points[i][0],no2Points[i][1]], radius,{ color: ccolor, stroke:false, fillColor: ccolor, fillOpacity: fopa}).addTo(map));
+				}
+			}
+
+			for (i = 0; i < no2Points.length; i++) {
+				if ( no2Points[i][2] >= 0.08) {
+					ccolor = "red";
+					fopa = 0.4;
+					no2_cir.push(L.circle([no2Points[i][0],no2Points[i][1]], radius,{ color: ccolor, stroke:false, fillColor: ccolor, fillOpacity: fopa}).addTo(map));
+				}
+			}
+		}
+
+
+
+        function addPart() {
+			
+			for (i = 0; i < partPoints.length; i++) {
+				if (partPoints[i][2] < 20) {
+					ccolor = "blue";
+					fopa = 0.2;
+					par_cir.push(L.circle([partPoints[i][0],partPoints[i][1]], radius,{ color: ccolor, stroke:false, fillColor: ccolor, fillOpacity: fopa}).addTo(map));
+				}
+			}
+
+			for (i = 0; i < partPoints.length; i++) {
+				if (30 > partPoints[i][2] && partPoints[i][2] > 20) {
+					ccolor = "green";
+					fopa = 0.4;
+					par_cir.push(L.circle([partPoints[i][0],partPoints[i][1]], radius,{ color: ccolor, stroke:false, fillColor: ccolor, fillOpacity: fopa}).addTo(map));
+				}
+			}
+
+			for (i = 0; i < partPoints.length; i++) {
+				if (40 > partPoints[i][2] && partPoints[i][2] > 30) {
+					ccolor = "yellow";
+					fopa = 0.4;
+					par_cir.push(L.circle([partPoints[i][0],partPoints[i][1]], radius,{ color: ccolor, stroke:false, fillColor: ccolor, fillOpacity: fopa}).addTo(map));
+				}
+			}
+
+			for (i = 0; i < partPoints.length; i++) {
+				if ( partPoints[i][2] >= 40) {
+					ccolor = "red";
+					fopa = 0.4;
+					par_cir.push(L.circle([partPoints[i][0],partPoints[i][1]], radius,{ color: ccolor, stroke:false, fillColor: ccolor, fillOpacity: fopa}).addTo(map));
+				}
+			}
+		}
+
+
+
+		function deleteno2() {
+			if ( no2_cir.length == 0) {
+				return 
+			}
+			for (i = 0; i < no2_cir.length; i++) {
+				map.removeLayer(no2_cir[i]);
+			}
+		}
+
+
+		function deletepart() {
+			if ( par_cir.length == 0) {
+				return 
+			}
+			for (i = 0; i < par_cir.length; i++) {
+				map.removeLayer(par_cir[i]);
+			}
+		}
+    
+		
+
+		$('#radio1').click(function() {
+			if ($(this).is(':checked')) {
+				deletepart();
+				deleteno2();
+				addNO2();
+			}
+		})
+
+		$('#radio2').click(function() {
+			if ($(this).is(':checked')) {
+				deleteno2();
+				deletepart();
+			}
+		})
+
+		$('#radio3').click(function() {
+			if ($(this).is(':checked')) {
+				deleteno2();
+				deletepart();
+				addPart();
+			}
+		})
+
+
+
+</script>
+</body>
+</html>
