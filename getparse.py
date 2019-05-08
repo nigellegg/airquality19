@@ -11,22 +11,25 @@ Created: 15 April 2019, 12:00
 
 import requests
 import json
+import boto3
 
 
 from lambdabase import LambdaBase
 
-class MyLambdaClass(LambdaBase):
-    def __init__(self, ...): # implementation-specific args and/or kwargs
-        # implementation
+class AirQualDataClass(LambdaBase):
+    def __init__(self, event): # implementation-specific args and/or kwargs
+        self.data = ''
 
     def handle(self, event, context):
-        # implementation
+        self.get_data()
+        self.get_fields()
+        self.save_to_bucket()
 
     def get_data():
     	response = requests.get("https://opendata.bristol.gov.uk/api/records/1.0/search/?dataset=nox_wide&q=date_time = #now(hours=-2)&apikey=6c2afeadeeaea3dcbbd1c2f48551bc37e043a0ac4ee5bf59855e05d0")
         data = response.json()
         self.data = data 
-        return true
+        return True
 
     def get_fields():
     	data = self.data
@@ -44,6 +47,30 @@ class MyLambdaClass(LambdaBase):
         out = open('nox.json', 'w')
         data = json.load(mapdata)
         json.dumps(data, out)
+        self.data = data
+        return True
 
+    def save_to_bucket(event, context):
+        AWS_BUCKET_NAME = 'airqual19'
+        s3 = boto3.resource('s3')
+        bucket = s3.Bucket(AWS_BUCKET_NAME)
+        path = 'noxdata.txt'
+        data = self.data
+        bucket.put_object(
+            ACL='public-read',
+            ContentType='application/json',
+            Key=path,
+            Body=data,
+        )
 
-handler = MyLambdaClass.get_handler(...) # input values for args and/or kwargs
+        body = {
+            "uploaded": "true",
+            "bucket": AWS_BUCKET_NAME,
+            "path": path,
+        }
+        return {
+            "statusCode": 200,
+            "body": json.dumps(body)
+        }
+
+handler = AirQualDataClass.get_handler(self, event) # input values for args and/or kwargs

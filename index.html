@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    	<title>Air Qual map</title>
+    	<script>
+    		var apiEndpoint = 'https://tqrdxoahoh.execute-api.eu-west-2.amazonaws.com/PROD'
+            fumction getdata() {
+            	data = $.get(apiEndpoint)
+            	return data
+            }
+    	</script>
+    </head>
+
+    <body>
+    	<h1>Air Quality map</h1>
+    	<p>Click the following button and see result</p>
+        <form>
+            <input type="button" onclick="getdata()" value="Get Data" />
+        </form>
+    </body>
+
+    <script>
+        
+    </script>
+</html>
