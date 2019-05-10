@@ -19,14 +19,225 @@
         <div id="map" style="width: 900px; height: 600px">
             <div id="radio" style="position:relative; z-index:7; padding: 0px 5px; float:right" >
                 <input type="radio" id="radio1" name="radio"><label for="radio1">NO</label>
-                <input type="radio" id="radio2" name="radio" checked="checked"><label for="radio2">NOx</label>
+                <input type="radio" id="radio2" name="radio"><label for="radio2">NOx</label>
                 <input type="radio" id="radio3" name="radio" checked="checked"><label for="radio3">NO2</label>
             </div>
         </div>
+
+        <script src="http://cdn.leafletjs.com/leaflet-0.7/leaflet.js"> </script>
+        <script src="http://leaflet.github.io/Leaflet.heat/dist/leaflet-heat.js"></script>
 	    <h1>Air Quality map</h1>
+        <p>Buy me a coffee at <a href='https://ko-fi.com/knowtext'>Ko-fi.com</a> to help me keep this site live. </p>
+        <script>
+            var map = L.map('map').setView([51.4497109,-2.5800031], 15);
+            mapLink = '<a href="http://openstreetmap.org">OpenStreetMap</a>';
+            L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; ' + mapLink + ' Contributors', maxZoom: 20, }).addTo(map);
+            no2_cir = [];
+            no_cir = [];
+            nox_cir = [];
+
+            var json = (function () {
+                var json = null;
+                $.ajax({
+                    'async': false,
+                    'global': false,
+                    'url': "https://s3.eu-west-2.amazonaws.com/airqual19/noxdata.json",
+                    'dataType': "json",
+                    'success': function (data) {
+                        json = data;
+                    }
+                });
+                return json;
+            });
+            
+            var geoJson = {
+                type: "FeatureCollection", 
+                features: [],
+            };
+
+            for (i = 0; i < json.length; i++) {
+                
+                geoJson.features.push({
+                    "type": "Feature",
+                    "geometry": {
+                         "type": "Point",
+                         "coordinates": [json[i].longitude, json[i].latitude]
+                    }, 
+                    "properties": {
+                        "id": json[i].recordid,
+                        "time": json[i].time,
+                        "no": json[i].no,
+                        "nox": json[i].nox,
+                        "no2": json[i].no2
+                    }
+                });
+            }
+
+            function addNO2() {
+                        radius = 20
+            
+                for (i = 0; i < geoJson.length; i++) {
+                    if (geoJson[i]['properties']['no2'] < 40) {
+                        ccolor = "blue";
+                        fopa = 0.2;
+                        no2_cir.push(L.circle([geoJson[i]['geometry']['coordinates'][0],geoJson[i]['geometry']['coordinates'][1]], radius,{ color: ccolor, stroke:false, fillColor: ccolor, fillOpacity: fopa}).addTo(map));
+                    }
+                }
+
+                for (i = 0; i < geoJson.length; i++) {
+                    if (60 > geoJson[i]['properties']['no2'] && geoJson[i]['properties']['no2'] >= 40) {
+                        ccolor = "green";
+                        fopa = 0.2;
+                        no2_cir.push(L.circle([geoJson[i]['geometry']['coordinates'][0],geoJson[i]['geometry']['coordinates'][1]], radius,{ color: ccolor, stroke:false, fillColor: ccolor, fillOpacity: fopa}).addTo(map));
+                    }
+                }
+
+                for (i = 0; i < geoJson.length; i++) {            
+                    if (80 > geoJson[i]['properties']['no2'] && geoJson[i]['properties']['no2'] >= 60) {
+                        ccolor = "yellow";
+                        fopa = 0.2;
+                        no2_cir.push(L.circle([geoJson[i]['geometry']['coordinates'][0],geoJson[i]['geometry']['coordinates'][1]], radius,{ color: ccolor, stroke:false, fillColor: ccolor, fillOpacity: fopa}).addTo(map));
+                    }
+                }
+
+                for (i = 0; i < geoJson.length; i++) {
+                    if ( geoJson[i]['properties']['no2'] >= 80) {
+                        ccolor = "red";
+                        fopa = 0.4;
+                        no2_cir.push(L.circle([geoJson[i]['geometry']['coordinates'][0],geoJson[i]['geometry']['coordinates'][1]], radius,{ color: ccolor, stroke:false, fillColor: ccolor, fillOpacity: fopa}).addTo(map));
+                    }
+                }
+            }
+
+            function addNO() {
+                        radius = 20
+            
+                for (i = 0; i < geoJson.length; i++) {
+                    if (geoJson[i]['properties']['no'] < 40) {
+                        ccolor = "blue";
+                        fopa = 0.2;
+                        no_cir.push(L.circle([geoJson[i]['geometry']['coordinates'][0],geoJson[i]['geometry']['coordinates'][1]], radius,{ color: ccolor, stroke:false, fillColor: ccolor, fillOpacity: fopa}).addTo(map));
+                    }
+                }
+
+                for (i = 0; i < geoJson.length; i++) {
+                    if (60 > geoJson[i]['properties']['no'] && geoJson[i]['properties']['no'] >= 40) {
+                        ccolor = "green";
+                        fopa = 0.2;
+                        no_cir.push(L.circle([geoJson[i]['geometry']['coordinates'][0],geoJson[i]['geometry']['coordinates'][1]], radius,{ color: ccolor, stroke:false, fillColor: ccolor, fillOpacity: fopa}).addTo(map));
+                    }
+                }
+
+                for (i = 0; i < geoJson.length; i++) {            
+                    if (80 > geoJson[i]['properties']['no'] && geoJson[i]['properties']['no'] >= 60) {
+                        ccolor = "yellow";
+                        fopa = 0.2;
+                        no_cir.push(L.circle([geoJson[i]['geometry']['coordinates'][0],geoJson[i]['geometry']['coordinates'][1]], radius,{ color: ccolor, stroke:false, fillColor: ccolor, fillOpacity: fopa}).addTo(map));
+                    }
+                }
+
+                for (i = 0; i < geoJson.length; i++) {
+                    if ( geoJson[i]['properties']['no'] >= 80) {
+                        ccolor = "red";
+                        fopa = 0.4;
+                        no_cir.push(L.circle([geoJson[i]['geometry']['coordinates'][0],geoJson[i]['geometry']['coordinates'][1]], radius,{ color: ccolor, stroke:false, fillColor: ccolor, fillOpacity: fopa}).addTo(map));
+                    }
+                }
+            }
+        
+            function addNOx() {
+                        radius = 20
+            
+                for (i = 0; i < geoJson.length; i++) {
+                    if (geoJson[i]['properties']['nox'] < 40) {
+                        ccolor = "blue";
+                        fopa = 0.2;
+                        nox_cir.push(L.circle([geoJson[i]['geometry']['coordinates'][0],geoJson[i]['geometry']['coordinates'][1]], radius,{ color: ccolor, stroke:false, fillColor: ccolor, fillOpacity: fopa}).addTo(map));
+                    }
+                }
+
+                for (i = 0; i < geoJson.length; i++) {
+                    if (60 > geoJson[i]['properties']['nox'] && geoJson[i]['properties']['no2'] >= 40) {
+                        ccolor = "green";
+                        fopa = 0.2;
+                        nox_cir.push(L.circle([geoJson[i]['geometry']['coordinates'][0],geoJson[i]['geometry']['coordinates'][1]], radius,{ color: ccolor, stroke:false, fillColor: ccolor, fillOpacity: fopa}).addTo(map));
+                    }
+                }
+
+                for (i = 0; i < geoJson.length; i++) {            
+                    if (80 > geoJson[i]['properties']['nox'] && geoJson[i]['properties']['no2'] >= 60) {
+                        ccolor = "yellow";
+                        fopa = 0.2;
+                        nox_cir.push(L.circle([geoJson[i]['geometry']['coordinates'][0],geoJson[i]['geometry']['coordinates'][1]], radius,{ color: ccolor, stroke:false, fillColor: ccolor, fillOpacity: fopa}).addTo(map));
+                    }
+                }
+
+                for (i = 0; i < geoJson.length; i++) {
+                    if ( geoJson[i]['properties']['nox'] >= 80) {
+                        ccolor = "red";
+                        fopa = 0.4;
+                        nox_cir.push(L.circle([geoJson[i]['geometry']['coordinates'][0],geoJson[i]['geometry']['coordinates'][1]], radius,{ color: ccolor, stroke:false, fillColor: ccolor, fillOpacity: fopa}).addTo(map));
+                    }
+                }
+            }
+
+            function deleteno2() {
+                if ( no2_cir.length == 0) {
+                    return 
+                }
+                for (i = 0; i < no2_cir.length; i++) {
+                    map.removeLayer(no2_cir[i]);
+                }
+            }
+
+            function deleteno() {
+                if ( no_cir.length == 0) {
+                    return 
+                }
+                for (i = 0; i < no_cir.length; i++) {
+                    map.removeLayer(no_cir[i]);
+                }
+            }
+    
+            function deletenox() {
+                if ( nox_cir.length == 0) {
+                    return 
+                }
+                for (i = 0; i < nox_cir.length; i++) {
+                    map.removeLayer(nox_cir[i]);
+                }
+            }
+        
+
+            $('#radio1').click(function() {
+                if ($(this).is(':checked')) {
+                    deleteno();
+                    deleteno2();
+                    deletenox();
+                    addNO();
+                }
+            })
+
+            $('#radio2').click(function() {
+                if ($(this).is(':checked')) {
+                    deleteno2();
+                    deleteno();
+                    deletenox();
+                    addNOx();
+                }
+            })
+
+            $('#radio3').click(function() {
+                if ($(this).is(':checked')) {
+                    deleteno2();
+                    deleteno();
+                    deletenox();
+                    addNO2();
+                }
+            })
+
+        </script> 
+
     </body>
 
-    <script>
-        
-    </script>
 </html>
